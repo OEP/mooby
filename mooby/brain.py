@@ -1,6 +1,6 @@
 from . import tokenize, phrasify
 import random
-import json
+import pickle
 
 
 class Brain(object):
@@ -9,6 +9,11 @@ class Brain(object):
         self.order = order
         self._graph = {}
         self._rng = random.Random()
+
+    @classmethod
+    def load(cls, fp):
+        d = pickle.load(fp)
+        return cls.from_dict(d)
 
     @classmethod
     def from_dict(cls, d):
@@ -60,7 +65,7 @@ class Brain(object):
         return {'order': self.order, 'graph': self._graph}
 
     def save(self, fp):
-        json.dump(self.to_dict(), fp)
+        pickle.dump(self.to_dict(), fp, pickle.HIGHEST_PROTOCOL)
 
     def _next(self, token):
         t = self._graph[token]
