@@ -17,12 +17,25 @@ def learn(args, brain):
             return
 
 
+def learnlines(args, brain):
+    for path in args:
+        try:
+            with open(path) as fp:
+                for line in fp:
+                    brain.learn_phrase(line)
+        except IOError as e:
+            aside('could not open `{}`: {}'.format(path, e))
+            return
+
+
 def command(command, brain):
     command = shlex.split(command)
     args = command[1:]
     command = command[0]
     if command == 'learn':
         learn(args, brain)
+    elif command == 'learnlines':
+        learnlines(args, brain)
     else:
         aside('unknown command: {}'.format(command))
 
