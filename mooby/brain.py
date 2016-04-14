@@ -13,14 +13,19 @@ class Brain(object):
         tokens = tokenize(phrase)
         if not tokens:
             return
-        i = 0
-        t0 = None
-        while i < len(tokens):
-            t1 = tuple(tokens[i:i+self.order])
-            self._associate(t0, t1)
-            t0 = t1
-            i += self.order
-        self._associate(t1, None)
+        for j in range(self.order):
+            i = j
+            if i == 0:
+                t0 = None
+            else:
+                t0 = tuple(tokens[0:i])
+                self._associate(None, t0)
+            while i < len(tokens):
+                t1 = tuple(tokens[i:i+self.order])
+                self._associate(t0, t1)
+                t0 = t1
+                i += self.order
+            self._associate(t1, None)
 
     def learn(self, corpus):
         for phrase in phrasify(corpus):
