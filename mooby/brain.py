@@ -1,5 +1,6 @@
 from . import tokenize, phrasify
 import random
+import json
 
 
 class Brain(object):
@@ -8,6 +9,16 @@ class Brain(object):
         self.order = order
         self._graph = {}
         self._rng = random.Random()
+
+    @classmethod
+    def from_dict(cls, d):
+        order = d.pop('order')
+        graph = d.pop('graph')
+        if d:
+            raise ValueError('Extra keys: %s' % ' '.join(d.keys()))
+        brain = cls(order=order)
+        brain._graph = graph
+        return brain
 
     def learn_phrase(self, phrase):
         tokens = tokenize(phrase)
@@ -44,6 +55,12 @@ class Brain(object):
     def speak(self):
         utterance = self.utter()
         return ' '.join(utterance)
+
+    def to_dict(self):
+        return {'order': self.order, 'graph': self._graph}
+
+    def save(self, fp):
+        json.dump(self.to_dict(), fp)
 
     def _next(self, token):
         t = self._graph[token]
