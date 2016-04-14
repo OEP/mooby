@@ -8,6 +8,8 @@ class Brain(object):
     def __init__(self, order=1):
         self.order = order
         self._graph = {}
+        self._back_graph = {}
+        self._jump = {}
         self._rng = random.Random()
 
     @classmethod
@@ -47,9 +49,19 @@ class Brain(object):
         for phrase in phrasify(corpus):
             self.learn_phrase(phrase)
 
-    def utter(self):
+    def utter(self, jump=None):
         if not self._graph:
-            return None
+            return []
+        if jump is not None:
+            try:
+                token = self._rng.choice(self._jump[jump])
+            except KeyError:
+                pass
+            else:
+                return self._bidirectional_utter(token)
+        return self._forward_utter()
+
+    def _forward_utter(self):
         utterance = []
         tokens = self._next(None)
         while tokens is not None:
@@ -57,8 +69,21 @@ class Brain(object):
             tokens = self._next(tokens)
         return utterance
 
-    def speak(self):
-        utterance = self.utter()
+    def _bidirectional_utter(self, token):
+        utterance = []
+        t0 = token
+        while t0 is not None:
+            utterance.extend(t0)
+            t0 = self._next(t0)
+        utterance = list(reversed(utterance))
+        t0 = self._prev(token)
+        while t0 is not None:
+            utterance.extend(reversed(t0))
+            t0 = self._prev(t0)
+        return list(reversed(utterance))
+
+    def speak(self, **kw):
+        utterance = self.utter(**kw)
         return ' '.join(utterance)
 
     def to_dict(self):
@@ -73,6 +98,23 @@ class Brain(object):
             return t
         return self._rng.choice(t)
 
+    def _prev(self, token):
+        t = self._back_graph[token]
+        if t is None:
+            return t
+        return self._rng.choice(t)
+
     def _associate(self, t1, t2):
+        self._learnjump(t1)
+        self._learnjump(t2)
         bag = self._graph.setdefault(t1, [])
         bag.append(t2)
+        bag = self._back_graph.setdefault(t2, [])
+        bag.append(t1)
+
+    def _learnjump(self, token):
+        if token is None:
+            return
+        for t in token:
+            l = self._jump.setdefault(t, [])
+            l.append(token)

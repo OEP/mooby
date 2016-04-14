@@ -2,6 +2,7 @@ from .brain import Brain
 import argparse
 import readline  # noqa
 import shlex
+import random
 
 
 def aside(msg):
@@ -44,11 +45,16 @@ def chat(brain):
     while True:
         phrase = input('mooby> ')
         phrase = phrase.strip()
+        words = phrase.split()
+        if words:
+            jump = random.choice(words)
+        else:
+            jump = None
         if phrase.startswith('!'):
             command(phrase[1:], brain)
         else:
+            print(brain.speak(jump=jump))
             brain.learn_phrase(phrase)
-            print(brain.speak())
 
 
 def main():
