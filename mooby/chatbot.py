@@ -3,6 +3,7 @@ import argparse
 import readline  # noqa
 import shlex
 import random
+import tempfile
 
 
 def aside(msg):
@@ -60,6 +61,11 @@ def chat(brain):
 def main():
     parser = _get_parser()
     args = parser.parse_args()
+    show_brain = False
+
+    if args.brain is None:
+        args.brain = tempfile.mktemp(prefix='mooby')
+        show_brain = True
 
     try:
         with open(args.brain, 'rb') as fp:
@@ -74,11 +80,13 @@ def main():
     finally:
         with open(args.brain, 'wb') as fp:
             brain.save(fp)
+    if show_brain:
+        print("Saved session to `{}'".format(args.brain))
 
 
 def _get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('brain')
+    parser.add_argument('brain', nargs='?')
     parser.add_argument('-k', '--order', type=int, default=1)
     return parser
 
